@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PV-Davies01 — Pluviómetro LoRaWAN con BastWAN + Davis 7345.440</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d2991d;
+    --red: #f85149;
+    --purple: #a371f7;
+    --code-bg: #1c2128;
+    --highlight: #1f2a38;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  /* Header */
+  .hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .hero .subtitle {
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+  .hero .badge-row {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.3rem 1rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .badge.accent { border-color: var(--accent); color: var(--accent); }
+
+  /* Sections */
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  section h2 {
+    color: var(--accent);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  section h3 {
+    color: var(--green);
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.5rem;
+  }
+  section h4 {
+    color: var(--orange);
+    font-size: 1rem;
+    margin: 1rem 0 0.3rem;
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0.8rem 0;
+  }
+  code {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+  }
+  pre code { background: none; padding: 0; }
+
+  /* Syntax highlighting */
+  .kw  { color: #ff7b72; }  /* keywords */
+  .cm  { color: #8b949e; font-style: italic; }  /* comments */
+  .fn  { color: #d2a8ff; }  /* functions */
+  .str { color: #a5d6ff; }  /* strings */
+  .num { color: #79c0ff; }  /* numbers */
+  .pp  { color: #ffa657; }  /* preprocessor */
+  .ty  { color: #ffa657; }  /* types */
+  .op  { color: #ff7b72; }  /* operators */
+
+  /* Callouts */
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--highlight);
+    padding: 1rem 1.2rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1rem 0;
+  }
+  .callout.warn  { border-left-color: var(--orange); }
+  .callout.tip   { border-left-color: var(--green); }
+  .callout.danger{ border-left-color: var(--red); }
+  .callout strong { display: block; margin-bottom: 0.3rem; }
+
+  /* Glossary */
+  .glossary-term {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+  .glossary-term .term {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 1.05rem;
+  }
+  .glossary-term .def {
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+    font-family: monospace;
+  }
+  .flow-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  .flow-arrow { color: var(--muted); font-size: 1.2rem; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    text-align: left;
+  }
+  th {
+    background: var(--code-bg);
+    color: var(--accent);
+  }
+
+  /* Step numbers */
+  .step {
+    display: flex;
+    gap: 1rem;
+    margin: 1.2rem 0;
+    align-items: flex-start;
+  }
+  .step-num {
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+  }
+  .step-body { flex: 1; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { padding: 1rem 0.5rem; }
+    section { padding: 1.2rem; }
+    .hero h1 { font-size: 1.5rem; }
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .toc h2 { font-size: 1.2rem; margin-bottom: 0.8rem; color: var(--accent); }
+  .toc ol { padding-left: 1.5rem; color: var(--muted); }
+  .toc li { margin: 0.3rem 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* SVG diagram */
+  .arch-svg { display: block; margin: 1rem auto; max-width: 100%; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ====== HERO ====== -->
+<div class="hero">
+  <h1>🌧️ PV-Davies01</h1>
+  <p class="subtitle">Pluviómetro Inteligente con LoRaWAN — BastWAN v2.0 + Davis 7345.440</p>
+  <div class="badge-row">
+    <span class="badge accent">IoT</span>
+    <span class="badge">LoRaWAN</span>
+    <span class="badge">Arduino</span>
+    <span class="badge">ChirpStack</span>
+    <span class="badge">CENGICANA</span>
+    <span class="badge">ABP</span>
+    <span class="badge">SF8BW125</span>
+  </div>
+</div>
+
+<!-- ====== TABLA DE CONTENIDO ====== -->
+<div class="toc">
+  <h2>📑 Tabla de Contenido</h2>
+  <ol>
+    <li><a href="#intro">¿Qué es este proyecto?</a></li>
+    <li><a href="#arch">Arquitectura del sistema</a></li>
+    <li><a href="#hardware">Hardware: Componentes físicos</a></li>
+    <li><a href="#lorawan">LoRaWAN: La red que todo lo conecta</a></li>
+    <li><a href="#abp">ABP vs OTAA: Métodos de activación</a></li>
+    <li><a href="#code-walk">Recorrido del código — línea por línea</a></li>
+    <li><a href="#payload">El Payload: Cómo se empaquetan los datos</a></li>
+    <li><a href="#timing">Timing y debounce: El arte de medir sin errores</a></li>
+    <li><a href="#glossary">Glosario IoT para estudiantes</a></li>
+    <li><a href="#summary">Resumen final</a></li>
+  </ol>
+</div>
+
+<!-- ====== 1. INTRO ====== -->
+<section id="intro">
+  <h2>1. ¿Qué es este proyecto?</h2>
+  <p>
+    <strong>PV-Davies01</strong> es un <em>pluviómetro inteligente</em> — un dispositivo que mide
+    cuánta lluvia cae, acumula los datos cada minuto, y los transmite de forma inalámbrica a
+    través de <strong>LoRaWAN</strong> hacia un servidor central (<strong>ChirpStack</strong> en
+    <strong>CENGICANA</strong>). No necesita WiFi, no necesita cables de red. Usa ondas de radio
+    de largo alcance y ultra bajo consumo.
+  </p>
+
+  <div class="callout tip">
+    <strong>💡 Dato clave</strong>
+    Este dispositivo puede operar por <em>meses o años</em> con una simple batería, transmitiendo
+    datos a kilómetros de distancia. Es la magia de LoRaWAN.
+  </div>
+
+  <h3>El problema que resuelve</h3>
+  <p>
+    En agricultura e investigación climática (como en CENGICANA — Centro Guatemalteco de
+    Investigación y Capacitación de la Caña de Azúcar), necesitás saber <strong>exactamente
+    cuánta lluvia cayó</strong> en cada zona, en tiempo real, sin ir físicamente a vaciar un
+    balde medidor. Este dispositivo automatiza todo: mide, acumula, transmite.
+  </p>
+
+  <h3>Los tres protagonistas</h3>
+  <table>
+    <tr><th>Componente</th><th>Rol</th></tr>
+    <tr><td><strong>Davis 7345.440</strong></td><td>Sensor de lluvia por balancín (tipping bucket). Cada vez que se llena un cubo miniatura, emite un pulso eléctrico.</td></tr>
+    <tr><td><strong>BastWAN v2.0</strong></td><td>Placa Arduino-compatible con módulo LoRa incorporado (RFM95). Lee los pulsos y transmite por radio.</td></tr>
+    <tr><td><strong>ChirpStack</strong></td><td>Servidor LoRaWAN de código abierto que recibe, decodifica y almacena los datos en la nube.</td></tr>
+  </table>
+</section>
+
+<!-- ====== 2. ARQUITECTURA ====== -->
+<section id="arch">
+  <h2>2. Arquitectura del sistema</h2>
+  <p>Así viajan los datos desde la gota de lluvia hasta el servidor:</p>
+
+  <svg class="arch-svg" viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff"/>
+      </marker>
+    </defs>
+    <!-- Lluvia -->
+    <text x="30" y="30" fill="#8b949e" font-size="12">🌧️ Gota de lluvia</text>
+    <!-- Davis -->
+    <rect x="20" y="50" width="140" height="60" rx="8" fill="#161b22" stroke="#30363d"/>
+    <text x="90" y="78" text-anchor="middle" fill="#c9d1d9" font-size="13">Davis 7345.440</text>
+    <text x="90" y="98" text-anchor="middle" fill="#8b949e" font-size="11">Tipping Bucket</text>
+    <!-- Flecha 1 -->
+    <line x1="160" y1="80" x2="220" y2="80" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="190" y="70" text-anchor="middle" fill="#8b949e" font-size="10">pulso</text>
+    <!-- BastWAN -->
+    <rect x="230" y="50" width="160" height="60" rx="8" fill="#161b22" stroke="#30363d"/>
+    <text x="310" y="78" text-anchor="middle" fill="#c9d1d9" font-size="13">BastWAN v2.0</text>
+    <text x="310" y="98" text-anchor="middle" fill="#8b949e" font-size="11">Arduino + RFM95</text>
+    <!-- Flecha 2 -->
+    <line x1="390" y1="80" x2="460" y2="80" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="425" y="70" text-anchor="middle" fill="#8b949e" font-size="10">868/915 MHz</text>
+    <!-- Gateway -->
+    <rect x="470" y="40" width="140" height="80" rx="8" fill="#161b22" stroke="#30363d"/>
+    <text x="540" y="68" text-anchor="middle" fill="#c9d1d9" font-size="13">LoRa Gateway</text>
+    <text x="540" y="88" text-anchor="middle" fill="#8b949e" font-size="11">Antena receptora</text>
+    <text x="540" y="108" text-anchor="middle" fill="#8b949e" font-size="10">(torre / edificio)</text>
+    <!-- Flecha 3 -->
+    <line x1="610" y1="80" x2="680" y2="80" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="645" y="70" text-anchor="middle" fill="#8b949e" font-size="10">Internet</text>
+    <!-- ChirpStack -->
+    <rect x="690" y="50" width="160" height="60" rx="8" fill="#161b22" stroke="#30363d"/>
+    <text x="770" y="78" text-anchor="middle" fill="#c9d1d9" font-size="13">ChirpStack</text>
+    <text x="770" y="98" text-anchor="middle" fill="#8b949e" font-size="11">Network Server</text>
+    <!-- Labels -->
+    <text x="90" y="160" text-anchor="middle" fill="#d2991d" font-size="11">0.2 mm por pulso</text>
+    <text x="310" y="160" text-anchor="middle" fill="#d2991d" font-size="11">Cuenta pulsos,</text>
+    <text x="310" y="176" text-anchor="middle" fill="#d2991d" font-size="11">codifica payload</text>
+    <text x="540" y="160" text-anchor="middle" fill="#d2991d" font-size="11">Recibe radio,</text>
+    <text x="540" y="176" text-anchor="middle" fill="#d2991d" font-size="11">reenvía por IP</text>
+    <text x="770" y="160" text-anchor="middle" fill="#d2991d" font-size="11">Decodifica,</text>
+    <text x="770" y="176" text-anchor="middle" fill="#d2991d" font-size="11">almacena en DB</text>
+  </svg>
+
+  <div class="callout">
+    <strong>📡 El viaje completo de un dato</strong>
+    Gota → balancín bascula → imán pasa por reed switch → pulso eléctrico en pin 9 del BastWAN →
+    Arduino cuenta el pulso → cada 60 segundos codifica el acumulado en 2 bytes → LoRa transmite
+    a 868/915 MHz → Gateway LoRaWAN recibe la señal → Gateway reenvía por Internet (TCP/IP) →
+    ChirpStack decodifica el payload → base de datos. Todo en menos de 2 segundos.
+  </div>
+</section>
+
+<!-- ====== 3. HARDWARE ====== -->
+<section id="hardware">
+  <h2>3. Hardware: Componentes físicos</h2>
+
+  <h3>Davis 7345.440 — El sensor de lluvia</h3>
+  <p>
+    Es un <strong>pluviómetro de balancín</strong> (<em>tipping bucket rain gauge</em>). Dentro
+    tiene un embudo que canaliza el agua hacia un pequeño balancín con dos cubos. Cuando un cubo
+    acumula exactamente <strong>0.2 mm</strong> de lluvia, el peso lo hace bascular. Un imán en
+    el balancín pasa frente a un <strong>reed switch</strong> (interruptor magnético), cerrando
+    un contacto eléctrico por una fracción de segundo. Eso es <strong>un pulso</strong>.
+  </p>
+
+  <div class="callout tip">
+    <strong>💡 ¿Por qué 0.2 mm?</strong>
+    Es el estándar métrico para pluviómetros Davis. En pulgadas sería 0.01". Cada pulso = 0.2 mm
+    de precipitación. Para ChirpStack, que espera unidades de 0.1 mm, cada pulso vale 2 unidades.
+  </div>
+
+  <h3>BastWAN v2.0 — El cerebro con radio</h3>
+  <p>
+    BastWAN es una placa de desarrollo creada por <strong>Electronic Cats</strong> (México).
+    Combina un microcontrolador <strong>SAMD21G18</strong> (ARM Cortex-M0+ a 48 MHz, el mismo
+    chip que un Arduino Zero) con un módulo <strong>RFM95</strong> de HopeRF para comunicación
+    LoRa en bandas de 868/915 MHz.
+  </p>
+
+  <table>
+    <tr><th>Característica</th><th>Valor</th></tr>
+    <tr><td>Microcontrolador</td><td>SAMD21G18 (ARM Cortex-M0+, 32-bit)</td></tr>
+    <tr><td>Velocidad</td><td>48 MHz</td></tr>
+    <tr><td>Flash / RAM</td><td>256 KB / 32 KB</td></tr>
+    <tr><td>Radio LoRa</td><td>RFM95 (HopeRF) — SX1276</td></tr>
+    <tr><td>Bandas</td><td>868 MHz (EU) / 915 MHz (US, LATAM)</td></tr>
+    <tr><td>Conectividad</td><td>USB-C para programación y Serial Monitor</td></tr>
+    <tr><td>Librería</td><td><code>lorawan.h</code> — abstrae todo el protocolo LoRaWAN</td></tr>
+  </table>
+
+  <h3>Conexión física</h3>
+  <p>
+    El cable del Davis 7345.440 tiene dos hilos. Uno va a <strong>GND</strong> (tierra) y el otro
+    al <strong>pin digital 9</strong> del BastWAN. El pin se configura como
+    <code>INPUT_PULLUP</code>, lo que significa que internamente se conecta a VCC (3.3V) a través
+    de una resistencia. Cuando el reed switch se cierra, el pin va a GND (LOW). Cuando está
+    abierto, la resistencia pull-up lo mantiene en HIGH.
+  </p>
+
+  <pre><code>     Davis 7345.440          BastWAN v2.0
+    ┌──────────────┐        ┌──────────────┐
+    │              │        │              │
+    │  Reed Switch ├─ GND ──┤ GND          │
+    │              │        │              │
+    │              ├─ SIG ──┤ Pin 9 (D9)   │
+    │              │        │              │
+    └──────────────┘        └──────────────┘
+
+    Reed Switch ABIERTO → Pin 9 = HIGH (pull-up interno a 3.3V)
+    Reed Switch CERRADO → Pin 9 = LOW  (conectado a GND)</code></pre>
+</section>
+
+<!-- ====== 4. LORAWAN ====== -->
+<section id="lorawan">
+  <h2>4. LoRaWAN: La red que todo lo conecta</h2>
+
+  <h3>¿Qué es LoRa?</h3>
+  <p>
+    <strong>LoRa</strong> (<em>Long Range</em>) es una técnica de modulación de radiofrecuencia
+    patentada por Semtech. Usa <strong>chirp spread spectrum (CSS)</strong> — "chirridos" de
+    frecuencia que se expanden en el espectro. Esto le da dos superpoderes:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li><strong>Alcance extremo:</strong> 2-5 km en ciudad, 10-20 km en campo abierto.</li>
+    <li><strong>Penetración:</strong> Atraviesa paredes, vegetación, y obstáculos mejor que WiFi o Bluetooth.</li>
+    <li><strong>Ultra bajo consumo:</strong> Un sensor puede durar años con una batería AA.</li>
+  </ul>
+
+  <h3>¿Qué es LoRaWAN?</h3>
+  <p>
+    <strong>LoRaWAN</strong> es el protocolo de red que va <em>encima</em> de LoRa. Define:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li>Cómo los dispositivos se autentican y se unen a la red.</li>
+    <li>Cuándo y cómo transmiten (clases A, B, C).</li>
+    <li>Cómo se encriptan los datos (AES-128).</li>
+    <li>Cómo los gateways reenvían paquetes al network server.</li>
+  </ul>
+
+  <h3>Clases de dispositivos LoRaWAN</h3>
+  <table>
+    <tr><th>Clase</th><th>Comportamiento</th><th>Consumo</th><th>Uso típico</th></tr>
+    <tr>
+      <td><strong>CLASS A</strong></td>
+      <td>Transmite cuando quiere. Después de cada uplink, abre DOS ventanas cortas de recepción para downlinks. El resto del tiempo DUERME.</td>
+      <td>Mínimo</td>
+      <td>Sensores a batería (nuestro pluviómetro)</td>
+    </tr>
+    <tr>
+      <td><strong>CLASS B</strong></td>
+      <td>Como Class A, pero además abre ventanas de recepción programadas (beacons) para recibir downlinks en horarios fijos.</td>
+      <td>Medio</td>
+      <td>Actuadores que necesitan recibir comandos</td>
+    </tr>
+    <tr>
+      <td><strong>CLASS C</strong></td>
+      <td>Escucha CONTINUAMENTE. Solo deja de escuchar mientras transmite.</td>
+      <td>Alto (requiere alimentación permanente)</td>
+      <td>Dispositivos conectados a la red eléctrica</td>
+    </tr>
+  </table>
+
+  <p>
+    Nuestro pluviómetro usa <strong>CLASS A</strong> — la más eficiente. Transmite 1 vez por
+    minuto, escucha unos milisegundos por si el servidor quiere responder, y vuelve a dormir.
+  </p>
+
+  <h3>Spreading Factor (SF) y Data Rate</h3>
+  <p>
+    El código configura <code>SF8BW125</code>. Vamos a desglosarlo:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li><strong>SF = Spreading Factor (8):</strong> Cada bit de datos se "expande" en 2<sup>8</sup> = 256 chips. A mayor SF, mayor alcance pero menor velocidad. SF7 es lo más rápido; SF12 lo más lento pero de mayor alcance. SF8 es un balance: buen alcance (~5 km) con velocidad decente.</li>
+    <li><strong>BW = Bandwidth (125 kHz):</strong> El ancho de banda del canal. 125 kHz es el estándar más común para LoRaWAN.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>📡 SF8BW125 en números</strong>
+    Data rate: ~3,125 bps. Tiempo de transmisión para 2 bytes de payload: ~50 ms. Alcance típico: 3-8 km (dependiendo de obstáculos). Perfecto para un pluviómetro en campo agrícola.
+  </div>
+</section>
+
+<!-- ====== 5. ABP vs OTAA ====== -->
+<section id="abp">
+  <h2>5. ABP vs OTAA: Métodos de activación en LoRaWAN</h2>
+
+  <p>
+    Para que un dispositivo transmita en una red LoRaWAN, necesita <strong>activarse</strong>.
+    Hay dos métodos:
+  </p>
+
+  <h3>OTAA — Over-The-Air Activation (Activación por el aire)</h3>
+  <p>
+    El dispositivo hace un "join request" a la red. El servidor responde con un "join accept" que
+    contiene las claves de sesión. Es más seguro (las claves se rotan) pero requiere que el
+    dispositivo esté dentro del rango de un gateway en el momento de activación.
+  </p>
+
+  <h3>ABP — Activation By Personalization (Activación por personalización)</h3>
+  <p>
+    Las claves <strong>se pre-programan manualmente</strong> en el dispositivo y en el servidor.
+    No hay handshake inicial. El dispositivo simplemente empieza a transmitir. Ventajas:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li>No depende de cobertura en el momento de instalación.</li>
+    <li>Ideal para dispositivos que se despliegan en campo y se encienden después.</li>
+    <li>Menor overhead de red (no consume un join procedure).</li>
+  </ul>
+
+  <p>Desventaja: las claves no rotan, por lo que si se comprometen, hay que re-programar.</p>
+
+  <p>Nuestro código usa <strong>ABP</strong> con tres valores:</p>
+
+  <table>
+    <tr><th>Clave</th><th>Valor en el código</th><th>Función</th></tr>
+    <tr>
+      <td><code>devAddr</code></td>
+      <td><code>00d84a8c</code></td>
+      <td>Dirección del dispositivo en la red (4 bytes). Como una "IP" pero para LoRaWAN.</td>
+    </tr>
+    <tr>
+      <td><code>nwkSKey</code></td>
+      <td><code>be2954f4...</code></td>
+      <td>Network Session Key: encripta y firma la comunicación entre dispositivo y red. El gateway y ChirpStack la usan para verificar integridad.</td>
+    </tr>
+    <tr>
+      <td><code>appSKey</code></td>
+      <td><code>0da02b24...</code></td>
+      <td>Application Session Key: encripta el payload de extremo a extremo. Solo el dispositivo y la aplicación (ChirpStack) pueden leer los datos. Ni siquiera el operador de red puede verlos.</td>
+    </tr>
+  </table>
+
+  <div class="callout warn">
+    <strong>⚠️ Seguridad</strong>
+    En un proyecto real, NUNCA publiques estas claves en GitHub ni en código abierto. Las de este
+    archivo son para un entorno controlado de CENGICANA. En producción, las claves se almacenan
+    en un archivo separado o en una zona segura del microcontrolador.
+  </div>
+</section>
+
+<!-- ====== 6. CODE WALKTHROUGH ====== -->
+<section id="code-walk">
+  <h2>6. Recorrido del código — línea por línea</h2>
+  <p>
+    Vamos a leer el archivo <code>PluviometroBastWan.ino</code> completo, explicando
+    <strong>cada bloque</strong>. No omitimos nada.
+  </p>
+
+  <!-- BLOQUE 1: Comentarios de cabecera -->
+  <h3>🔹 Bloque 1 — Cabecera y metadatos (líneas 1-6)</h3>
+  <pre><code><span class="cm">// ============================================================
+// PV-Davies01 - BastWAN v2.0 + Davis 7345.440
+// LoRaWAN ABP - ChirpStack CENGICANA
+// Payload: 2 bytes big-endian (0.1 mm por unidad - codec ChirpStack)
+// 1 pulso = 0.2 mm = 2 unidades de 0.1 mm
+// ============================================================</span></code></pre>
+  <p>
+    Estas 6 líneas son el <strong>DNI del proyecto</strong>. Nos dicen TODO lo que necesitamos
+    saber para entender el sistema sin leer el resto:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li><strong>Nombre:</strong> PV-Davies01 (Pluviómetro Davies #1).</li>
+    <li><strong>Hardware:</strong> BastWAN v2.0 + sensor Davis 7345.440.</li>
+    <li><strong>Protocolo:</strong> LoRaWAN ABP (no OTAA).</li>
+    <li><strong>Destino:</strong> ChirpStack en CENGICANA.</li>
+    <li><strong>Formato del payload:</strong> 2 bytes en big-endian, donde cada unidad = 0.1 mm.</li>
+    <li><strong>Factor de conversión:</strong> 1 pulso del sensor = 0.2 mm = 2 unidades de payload.</li>
+  </ul>
+
+  <div class="callout tip">
+    <strong>💡 Buenas prácticas</strong>
+    Un encabezado así vale oro. Cuando volvés al código 6 meses después, no tenés que deducir nada.
+    Todo está documentado en 6 líneas.
+  </div>
+
+  <!-- BLOQUE 2: Includes -->
+  <h3>🔹 Bloque 2 — Librería LoRaWAN (línea 7)</h3>
+  <pre><code><span class="pp">#include</span> <span class="str">&lt;lorawan.h&gt;</span></code></pre>
+  <p>
+    Esta librería es el corazón de la comunicación. <code>lorawan.h</code> es parte del
+    <strong>BastWAN SDK</strong> de Electronic Cats. Abstrae toda la complejidad del protocolo
+    LoRaWAN: manejo de claves, construcción de tramas MAC, temporización de ventanas de recepción,
+    confirmaciones, y retransmisiones. Sin esta librería, tendríamos que implementar cientos de
+    líneas de código de bajo nivel para el chip SX1276.
+  </p>
+
+  <!-- BLOQUE 3: Credenciales ABP -->
+  <h3>🔹 Bloque 3 — Credenciales ABP (líneas 9-12)</h3>
+  <pre><code><span class="kw">const char</span> *devAddr = <span class="str">"00d84a8c"</span>;
+<span class="kw">const char</span> *nwkSKey = <span class="str">"be2954f42fcd1792f55384b12c50bdd7"</span>;
+<span class="kw">const char</span> *appSKey = <span class="str">"0da02b24cfcf0b7f46c75916dbc731c7"</span>;</code></pre>
+  <p>
+    Las tres credenciales ABP que vimos en la sección anterior. Se declaran como
+    <code>const char *</code> (punteros a cadenas constantes). La librería las recibe como
+    strings hexadecimales y las convierte internamente a bytes.
+  </p>
+
+  <!-- BLOQUE 4: Pines y constantes -->
+  <h3>🔹 Bloque 4 — Configuración de pines y timing (líneas 14-19)</h3>
+  <pre><code><span class="pp">#define RAIN_PIN</span> <span class="num">9</span>
+<span class="pp">#define DEBOUNCE_MS</span> <span class="num">200</span>
+
+<span class="pp">#define INTERVALO_MS</span> <span class="num">60000UL</span></code></pre>
+  <p>Tres constantes fundamentales:</p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li><strong><code>RAIN_PIN 9</code>:</strong> El pin digital donde conectamos el cable de señal del pluviómetro.</li>
+    <li><strong><code>DEBOUNCE_MS 200</code>:</strong> Tiempo mínimo entre pulsos válidos (200 milisegundos). Ignora rebotes mecánicos del reed switch. Explicado en detalle más adelante.</li>
+    <li><strong><code>INTERVALO_MS 60000UL</code>:</strong> Cada 60,000 milisegundos (60 segundos = 1 minuto) se transmite un reporte. El sufijo <code>UL</code> fuerza el tipo <code>unsigned long</code> (32 bits sin signo) para evitar overflow en aritmética de tiempos.</li>
+  </ul>
+
+  <!-- BLOQUE 5: Variables globales -->
+  <h3>🔹 Bloque 5 — Variables de estado (líneas 21-28)</h3>
+  <pre><code><span class="kw">unsigned long</span> ultimoPulso = <span class="num">0</span>;
+<span class="kw">unsigned long</span> pulsos = <span class="num">0</span>;
+<span class="kw">unsigned long</span> ultimoReporte = <span class="num">0</span>;
+<span class="kw">unsigned long</span> minuto = <span class="num">1</span>;
+
+<span class="kw">int</span> estadoAnterior = <span class="fn">HIGH</span>;</code></pre>
+  <p>Cada variable tiene un propósito específico:</p>
+  <table>
+    <tr><th>Variable</th><th>Tipo</th><th>Propósito</th></tr>
+    <tr><td><code>ultimoPulso</code></td><td><code>unsigned long</code></td><td>Timestamp del último pulso válido. Se usa para el debounce: si un nuevo pulso llega antes de DEBOUNCE_MS desde este timestamp, se ignora.</td></tr>
+    <tr><td><code>pulsos</code></td><td><code>unsigned long</code></td><td>Contador de pulsos acumulados en el minuto actual. Se resetea a 0 después de cada transmisión.</td></tr>
+    <tr><td><code>ultimoReporte</code></td><td><code>unsigned long</code></td><td>Timestamp del último reporte transmitido. Se compara con <code>millis()</code> para saber si ya pasó 1 minuto.</td></tr>
+    <tr><td><code>minuto</code></td><td><code>unsigned long</code></td><td>Contador de minutos desde el arranque (1, 2, 3... hasta 1439, luego vuelve a 0). Utilidad: diagnóstico y logging.</td></tr>
+    <tr><td><code>estadoAnterior</code></td><td><code>int</code></td><td>Guarda el estado anterior del pin para detectar <strong>flancos de bajada</strong> (transiciones HIGH→LOW).</td></tr>
+  </table>
+
+  <!-- BLOQUE 6: Estructura RFM -->
+  <h3>🔹 Bloque 6 — Configuración del módulo RFM95 (líneas 30-41)</h3>
+  <pre><code><span class="kw">const sRFM_pins</span> RFM_pins = {
+  .CS = SS,
+  .RST = RFM_RST,
+  .DIO0 = RFM_DIO0,
+  .DIO1 = RFM_DIO1,
+  .DIO2 = RFM_DIO2,
+  .DIO5 = RFM_DIO5,
+};
+
+<span class="kw">char</span> outStr[<span class="num">255</span>];
+<span class="kw">byte</span> recvStatus = <span class="num">0</span>;</code></pre>
+  <p>
+    <code>sRFM_pins</code> es una estructura (<code>struct</code>) que mapea los pines del
+    microcontrolador a las funciones del chip RFM95:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li><strong>CS (Chip Select):</strong> Pin SS (Slave Select) del bus SPI. Activa el chip para comunicación.</li>
+    <li><strong>RST (Reset):</strong> Pin de reinicio del módulo.</li>
+    <li><strong>DIO0-DIO5:</strong> Pines de interrupción digital. El RFM95 los usa para señalar eventos: "transmisión completada" (DIO0), "paquete recibido" (DIO1), etc. La librería los configura automáticamente.</li>
+  </ul>
+  <p>
+    <code>outStr[255]</code> es un buffer para recibir downlinks (mensajes del servidor).
+    <code>recvStatus</code> indica si se recibió algo (0 = nada, &gt;0 = bytes recibidos).
+  </p>
+
+  <!-- BLOQUE 7: setup() -->
+  <h3>🔹 Bloque 7 — setup() (líneas 43-71)</h3>
+  <p>La función <code>setup()</code> se ejecuta UNA sola vez al encender el dispositivo.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Inicializar comunicación Serial</h4>
+      <pre><code><span class="fn">Serial</span>.<span class="fn">begin</span>(<span class="num">115200</span>);
+<span class="fn">delay</span>(<span class="num">3000</span>);</code></pre>
+      <p>
+        Abre el puerto serial USB a 115,200 baudios (bits por segundo). Los 3 segundos de delay
+        dan tiempo a que el monitor serial del IDE de Arduino se conecte antes de que el programa
+        empiece a enviar datos. Sin este delay, los primeros mensajes se perderían.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Configurar el pin del pluviómetro</h4>
+      <pre><code><span class="fn">pinMode</span>(RAIN_PIN, <span class="fn">INPUT_PULLUP</span>);
+<span class="fn">delay</span>(<span class="num">100</span>);
+estadoAnterior = <span class="fn">digitalRead</span>(RAIN_PIN);</code></pre>
+      <p>
+        <strong>INPUT_PULLUP</strong> activa una resistencia interna de ~20-50 kΩ que conecta el
+        pin a VCC (3.3V). Esto garantiza que el pin lea HIGH cuando el reed switch está abierto.
+        Cuando el switch se cierra (por el imán del balancín), conecta el pin a GND y lee LOW.
+      </p>
+      <p>
+        El <code>delay(100)</code> deja que la electrónica se estabilice. Luego leemos el estado
+        inicial para que la primera iteración del loop no detecte un falso flanco.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Inicializar el módulo LoRa</h4>
+      <pre><code><span class="kw">if</span> (!lora.<span class="fn">init</span>()) {
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"ERROR: LoRa no detectado"</span>);
+  <span class="kw">while</span> (<span class="num">1</span>) {
+  }
+}</code></pre>
+      <p>
+        <code>lora.init()</code> verifica que el chip RFM95 responda en el bus SPI. Si falla
+        (módulo mal conectado, dañado, o sin alimentación), el programa entra en un
+        <strong>loop infinito</strong> (<code>while(1){}</code>). Esto es un "halt and catch fire"
+        controlado: mejor detenerse que transmitir datos basura.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Configurar parámetros LoRaWAN</h4>
+      <pre><code>lora.<span class="fn">setDeviceClass</span>(<span class="fn">CLASS_A</span>);
+lora.<span class="fn">setDataRate</span>(<span class="fn">SF8BW125</span>);
+lora.<span class="fn">setChannel</span>(<span class="fn">MULTI</span>);
+lora.<span class="fn">setNwkSKey</span>(nwkSKey);
+lora.<span class="fn">setAppSKey</span>(appSKey);
+lora.<span class="fn">setDevAddr</span>(devAddr);</code></pre>
+      <p>Seis configuraciones en secuencia:</p>
+      <ol style="padding-left:1.5rem; margin:0.5rem 0;">
+        <li><strong>CLASS_A:</strong> Modo de bajo consumo. Transmite, abre 2 ventanas RX, duerme.</li>
+        <li><strong>SF8BW125:</strong> Spreading Factor 8, ancho de banda 125 kHz.</li>
+        <li><strong>MULTI:</strong> El dispositivo puede saltar entre múltiples canales de frecuencia (frequency hopping). Esto es obligatorio en LoRaWAN para cumplir con regulaciones de espectro.</li>
+        <li><strong>setNwkSKey / setAppSKey / setDevAddr:</strong> Las credenciales ABP que definimos arriba.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h4>Banner de inicio</h4>
+      <pre><code><span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"========================================"</span>);
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"  PV-Davies01 - CENGICANA [v2.1]"</span>);
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"  Davis 7345.440 + BastWAN ABP"</span>);
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"  0.2 mm/pulso = 2 unidades (0.1 mm)"</span>);
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"========================================"</span>);
+
+ultimoReporte = <span class="fn">millis</span>();</code></pre>
+      <p>
+        Imprime un banner informativo por el puerto serial. La última línea inicializa
+        <code>ultimoReporte</code> con el tiempo actual para que el primer reporte ocurra
+        exactamente 60 segundos después del arranque.
+      </p>
+    </div>
+  </div>
+
+  <!-- BLOQUE 8: loop() -->
+  <h3>🔹 Bloque 8 — loop() (líneas 73-146)</h3>
+  <p>
+    <code>loop()</code> se ejecuta una y otra vez, miles de veces por segundo. Es el "latido"
+    del Arduino. Se divide en TRES partes:
+  </p>
+
+  <h4>Parte A — Detección de pulsos del pluviómetro (líneas 74-93)</h4>
+  <pre><code><span class="kw">int</span> estadoActual = <span class="fn">digitalRead</span>(RAIN_PIN);
+
+<span class="kw">if</span> (estadoAnterior == <span class="fn">HIGH</span> && estadoActual == <span class="fn">LOW</span>) {
+  <span class="kw">unsigned long</span> ahora = <span class="fn">millis</span>();
+
+  <span class="kw">if</span> ((ahora - ultimoPulso) > DEBOUNCE_MS) {
+    ultimoPulso = ahora;
+    pulsos++;
+
+    <span class="kw">float</span> mmActual = pulsos * <span class="num">0.2f</span>;
+    <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"  [PULSO] Min:"</span>);
+    <span class="fn">Serial</span>.<span class="fn">print</span>(minuto);
+    <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" | Acumulado: "</span>);
+    <span class="fn">Serial</span>.<span class="fn">print</span>(pulsos);
+    <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" pulsos = "</span>);
+    <span class="fn">Serial</span>.<span class="fn">print</span>(mmActual, <span class="num">1</span>);
+    <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">" mm"</span>);
+  }
+}
+estadoAnterior = estadoActual;</code></pre>
+
+  <p>Esta sección implementa un <strong>detector de flanco de bajada con debounce</strong>:</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <strong>Leer el pin:</strong> <code>digitalRead(RAIN_PIN)</code> devuelve HIGH o LOW.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <strong>Detectar flanco:</strong> <code>estadoAnterior == HIGH && estadoActual == LOW</code>.
+      Esto solo es verdad cuando el pin ACABA de cambiar de HIGH a LOW. Si ya estaba LOW y sigue
+      LOW, no se dispara. Esto evita contar el mismo pulso miles de veces mientras el reed switch
+      permanece cerrado.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <strong>Debounce:</strong> <code>(ahora - ultimoPulso) > DEBOUNCE_MS</code>. Un reed switch
+      mecánico "rebota" — el contacto abre y cierra varias veces en milisegundos antes de
+      estabilizarse. Sin debounce, un solo basculazo del balancín se contaría como 5-10 pulsos.
+      Con 200 ms de ventana, ignoramos esos rebotes.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <strong>Registrar y mostrar:</strong> Si pasa ambas validaciones, incrementamos
+      <code>pulsos</code>, calculamos <code>mmActual = pulsos * 0.2</code>, y lo imprimimos
+      por serial.
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>🔍 Debounce visualizado</strong><br>
+    <pre><code>Reed switch físico:     ▁▁▁▁▁▁▁▁█▁█▁█▁█████████████▁▁▁▁▁▁▁▁
+                          ↑     rebotes    ↑ cierre firme ↑
+Sin debounce:            ·····1·2·3·4··················  (4 pulsos falsos)
+Con debounce (200ms):    ·····1························  (1 pulso real)</code></pre>
+  </div>
+
+  <h4>Parte B — Transmisión periódica (líneas 95-143)</h4>
+  <pre><code><span class="kw">if</span> (<span class="fn">millis</span>() - ultimoReporte >= INTERVALO_MS) {
+  ultimoReporte = <span class="fn">millis</span>();
+
+  <span class="kw">float</span> mm = pulsos * <span class="num">0.2f</span>;
+
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"----------------------------------------"</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Minuto #"</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(minuto);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" | Pulsos: "</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(pulsos);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" | Lluvia: "</span>);
+  <span class="fn">Serial</span>.<span class="fn">print</span>(mm, <span class="num">1</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">" mm"</span>);</code></pre>
+
+  <p>
+    Cada 60 segundos, este bloque se dispara. La condición usa <code>millis()</code> — un reloj
+    interno que cuenta milisegundos desde el arranque. Esto es <strong>no bloqueante</strong>:
+    el loop sigue corriendo y detectando pulsos mientras espera. Si usáramos
+    <code>delay(60000)</code>, perderíamos todos los pulsos durante ese minuto.
+  </p>
+
+  <h4>Parte C — Construcción y envío del payload (líneas 109-137)</h4>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Convertir pulsos a unidades ChirpStack</h4>
+      <pre><code><span class="kw">uint16_t</span> valor = (<span class="kw">uint16_t</span>)(pulsos * <span class="num">2</span>);
+<span class="kw">byte</span> payload[<span class="num">2</span>];
+payload[<span class="num">0</span>] = (valor >> <span class="num">8</span>) & <span class="num">0xFF</span>;
+payload[<span class="num">1</span>] = valor & <span class="num">0xFF</span>;</code></pre>
+      <p>
+        <strong>La conversión crítica:</strong> ChirpStack espera que cada unidad del payload
+        represente 0.1 mm de lluvia. Como cada pulso del Davis son 0.2 mm, multiplicamos por 2.
+        Si cayeron 5 pulsos → 5 × 0.2 = 1.0 mm → 5 × 2 = 10 unidades de 0.1 mm.
+      </p>
+      <p>
+        <strong>Big-endian:</strong> El byte más significativo (MSB) va primero.
+        <code>payload[0]</code> = bits 8-15, <code>payload[1]</code> = bits 0-7.
+        Ejemplo: valor = 10 (0x000A) → payload = <code>[0x00, 0x0A]</code>.
+        Valor = 300 (0x012C) → payload = <code>[0x01, 0x2C]</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Mostrar el payload en hexadecimal</h4>
+      <pre><code><span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Enviando payload (0.1mm): 0x"</span>);
+<span class="kw">if</span> (payload[<span class="num">0</span>] < <span class="num">0x10</span>) {
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"0"</span>);
+}
+<span class="fn">Serial</span>.<span class="fn">print</span>(payload[<span class="num">0</span>], <span class="fn">HEX</span>);
+<span class="kw">if</span> (payload[<span class="num">1</span>] < <span class="num">0x10</span>) {
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"0"</span>);
+}
+<span class="fn">Serial</span>.<span class="fn">print</span>(payload[<span class="num">1</span>], <span class="fn">HEX</span>);
+<span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">" = "</span>);
+<span class="fn">Serial</span>.<span class="fn">print</span>(valor);
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">" unidades"</span>);</code></pre>
+      <p>
+        Imprime el payload en formato legible. Los <code>if</code> agregan un cero a la izquierda
+        cuando el byte es menor a 0x10, para que siempre se vean 2 dígitos hex por byte.
+        Ejemplo: <code>0x000A = 10 unidades</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Transmitir por LoRaWAN</h4>
+      <pre><code>lora.<span class="fn">sendUplink</span>((<span class="kw">char</span> *)payload, <span class="num">2</span>, <span class="num">0</span>, <span class="num">2</span>);
+<span class="fn">Serial</span>.<span class="fn">println</span>(<span class="str">"Uplink encolado correctamente"</span>);</code></pre>
+      <p>
+        <code>sendUplink</code> encola el payload para transmisión. Parámetros:
+      </p>
+      <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+        <li><strong>(char *)payload:</strong> El array de 2 bytes convertido a puntero char.</li>
+        <li><strong>2:</strong> Longitud del payload en bytes.</li>
+        <li><strong>0:</strong> Puerto 0 (puerto por defecto en LoRaWAN, sin significado especial).</li>
+        <li><strong>2:</strong> Solicitar confirmación (confirmed uplink). El servidor debe responder con un ACK. Si no llega, la librería retransmite automáticamente.</li>
+      </ul>
+      <p>
+        La transmisión real no ocurre aquí — solo se encola. El <code>lora.update()</code> al
+        final del loop es quien realmente procesa la cola y transmite cuando las ventanas de
+        CLASS A lo permiten.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Recibir downlink (respuesta del servidor)</h4>
+      <pre><code>recvStatus = lora.<span class="fn">readData</span>(outStr);
+<span class="kw">if</span> (recvStatus) {
+  <span class="fn">Serial</span>.<span class="fn">print</span>(<span class="str">"Downlink recibido: "</span>);
+  <span class="fn">Serial</span>.<span class="fn">println</span>(outStr);
+}</code></pre>
+      <p>
+        Después de transmitir, CLASS A abre dos ventanas de recepción (RX1 y RX2). Si ChirpStack
+        envió un downlink (por ejemplo, un comando de reconfiguración), <code>readData</code> lo
+        captura y lo imprime.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h4>Resetear contadores para el siguiente minuto</h4>
+      <pre><code>pulsos = <span class="num">0</span>;
+minuto = (minuto + <span class="num">1</span>) % <span class="num">1440</span>;</code></pre>
+      <p>
+        <code>pulsos = 0</code> resetea el acumulador para el próximo intervalo.
+        <code>minuto = (minuto + 1) % 1440</code> incrementa el contador de minutos, y con
+        <strong>módulo 1440</strong> (24 horas × 60 minutos) lo hace circular: después de
+        1439 vuelve a 0. Esto es solo para logging; no afecta los datos transmitidos.
+      </p>
+    </div>
+  </div>
+
+  <h4>Parte D — Mantenimiento de LoRa (línea 145)</h4>
+  <pre><code>lora.<span class="fn">update</span>();</code></pre>
+  <p>
+    Esta línea es <strong>crítica</strong> y se ejecuta en CADA iteración del loop, no solo
+    cuando se transmite. <code>lora.update()</code> es la máquina de estados interna de la
+    librería LoRaWAN. Se encarga de:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li>Procesar la cola de uplinks pendientes.</li>
+    <li>Iniciar transmisión cuando llega el momento (respetando duty cycle y regulaciones).</li>
+    <li>Abrir ventanas RX1 y RX2 después de cada uplink.</li>
+    <li>Manejar retransmisiones si no llega ACK.</li>
+    <li>Procesar downlinks entrantes.</li>
+    <li>Gestionar el canal MULTI (frequency hopping).</li>
+  </ul>
+  <p>
+    Sin esta llamada constante, el módulo LoRa simplemente no haría nada. Es el "motor" que
+    mantiene viva la comunicación.
+  </p>
+</section>
+
+<!-- ====== 7. PAYLOAD ====== -->
+<section id="payload">
+  <h2>7. El Payload: Cómo se empaquetan los datos</h2>
+
+  <h3>La regla de conversión</h3>
+  <div class="callout">
+    <strong>📐 Fórmula sagrada</strong><br>
+    <code>valor_payload = pulsos × 2</code><br>
+    <code>lluvia_mm = valor_payload × 0.1</code><br>
+    O directamente: <code>lluvia_mm = pulsos × 0.2</code>
+  </div>
+
+  <h3>Tabla de ejemplos</h3>
+  <table>
+    <tr><th>Pulsos</th><th>Lluvia real</th><th>valor (payload)</th><th>Bytes (big-endian hex)</th></tr>
+    <tr><td>0</td><td>0.0 mm</td><td>0</td><td><code>0x00 0x00</code></td></tr>
+    <tr><td>1</td><td>0.2 mm</td><td>2</td><td><code>0x00 0x02</code></td></tr>
+    <tr><td>5</td><td>1.0 mm</td><td>10</td><td><code>0x00 0x0A</code></td></tr>
+    <tr><td>25</td><td>5.0 mm</td><td>50</td><td><code>0x00 0x32</code></td></tr>
+    <tr><td>128</td><td>25.6 mm</td><td>256</td><td><code>0x01 0x00</code></td></tr>
+    <tr><td>500</td><td>100.0 mm</td><td>1000</td><td><code>0x03 0xE8</code></td></tr>
+    <tr><td>16383</td><td>3276.6 mm</td><td>32766</td><td><code>0x7F 0xFE</code></td></tr>
+  </table>
+
+  <p>
+    Con 2 bytes (16 bits), el valor máximo es 65535, equivalente a 6553.5 mm de lluvia en un
+    minuto — físicamente imposible, así que nunca habrá overflow.
+  </p>
+
+  <h3>Big-Endian vs Little-Endian</h3>
+  <p>
+    <strong>Big-endian</strong> significa que el byte más significativo (el de mayor peso) se
+    transmite PRIMERO. Es el estándar de red (TCP/IP, LoRaWAN). Ejemplo con valor 300 (0x012C):
+  </p>
+  <table>
+    <tr><th>Formato</th><th>Byte 0</th><th>Byte 1</th></tr>
+    <tr><td><strong>Big-endian</strong> (nuestro código)</td><td><code>0x01</code> (MSB)</td><td><code>0x2C</code> (LSB)</td></tr>
+    <tr><td>Little-endian (x86, Arduino nativo)</td><td><code>0x2C</code> (LSB)</td><td><code>0x01</code> (MSB)</td></tr>
+  </table>
+  <p>
+    El código de ChirpStack (codec) debe saber que el payload es big-endian para reconstruir
+    el valor correctamente: <code>valor = payload[0] × 256 + payload[1]</code>.
+  </p>
+</section>
+
+<!-- ====== 8. TIMING Y DEBOUNCE ====== -->
+<section id="timing">
+  <h2>8. Timing y Debounce: El arte de medir sin errores</h2>
+
+  <h3>¿Por qué millis() y no delay()?</h3>
+  <p>
+    <code>delay(60000)</code> CONGELA el microcontrolador por 60 segundos. Durante ese tiempo:
+  </p>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li>❌ No se lee el pin del pluviómetro → se pierden pulsos.</li>
+    <li>❌ No se ejecuta <code>lora.update()</code> → se pierden downlinks y ACKs.</li>
+    <li>❌ No se puede hacer NADA más.</li>
+  </ul>
+  <p>
+    <code>millis()</code> es un contador que avanza solo, en hardware. Leerlo toma microsegundos.
+    El patrón <code>if (millis() - ultimoReporte >= INTERVALO_MS)</code> permite que el loop
+    siga corriendo libremente y solo actúe cuando se cumple el tiempo. Esto se llama
+    <strong>programación no bloqueante</strong> y es fundamental en IoT.
+  </p>
+
+  <h3>El problema del rebote (bounce)</h3>
+  <p>
+    Un reed switch es un interruptor mecánico: dos láminas metálicas que se tocan cuando un imán
+    se acerca. Pero no hacen contacto limpio — vibran, rebotan, generan múltiples aperturas y
+    cierres en milisegundos:
+  </p>
+
+  <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="display:block; margin:1rem auto; max-width:100%;">
+    <text x="10" y="20" fill="#8b949e" font-size="11">Señal real del reed switch (osciloscopio):</text>
+    <!-- Signal trace -->
+    <polyline points="20,140 60,140 65,40 70,130 75,50 80,120 85,60 90,110 95,70 100,40 300,40 305,130 310,50 315,120 320,60 325,110 330,70 335,40 500,40"
+      fill="none" stroke="#3fb950" stroke-width="2"/>
+    <!-- HIGH label -->
+    <line x1="20" y1="140" x2="20" y2="150" stroke="#8b949e" stroke-width="1"/>
+    <text x="20" y="165" fill="#8b949e" font-size="10">HIGH (3.3V)</text>
+    <!-- LOW label -->
+    <line x1="100" y1="40" x2="100" y2="30" stroke="#8b949e" stroke-width="1"/>
+    <text x="100" y="25" fill="#8b949e" font-size="10">LOW (GND)</text>
+    <!-- Annotations -->
+    <text x="80" y="90" fill="#f85149" font-size="10">rebotes</text>
+    <text x="200" y="90" fill="#d2991d" font-size="10">cierre firme (~100-300ms)</text>
+    <text x="400" y="90" fill="#f85149" font-size="10">rebotes al abrir</text>
+  </svg>
+
+  <h3>Cómo funciona el debounce en nuestro código</h3>
+  <pre><code><span class="kw">if</span> ((ahora - ultimoPulso) > DEBOUNCE_MS) {  <span class="cm">// 200 ms</span>
+  ultimoPulso = ahora;                          <span class="cm">// actualizar timestamp</span>
+  pulsos++;                                     <span class="cm">// contar UN solo pulso</span>
+}</code></pre>
+  <p>
+    Después de aceptar un pulso, el código actualiza <code>ultimoPulso</code> al tiempo actual.
+    Cualquier flanco que llegue en los siguientes 200 ms será rechazado porque
+    <code>(ahora - ultimoPulso)</code> será menor que 200. Para cuando pasan los 200 ms, los
+    rebotes ya terminaron y el switch está estable (firmemente cerrado o firmemente abierto).
+  </p>
+
+  <div class="callout tip">
+    <strong>💡 ¿Por qué 200 ms?</strong>
+    Un tipping bucket típico tarda entre 100 y 300 ms en bascular completamente. Con 200 ms
+    cubrimos el rebote sin riesgo de perder dos basculazos reales consecutivos (que en la
+    práctica nunca ocurren a menos de 500 ms de separación incluso en tormenta torrencial).
+  </div>
+
+  <h3>Overflow de millis()</h3>
+  <p>
+    <code>millis()</code> retorna un <code>unsigned long</code> (32 bits). Su valor máximo es
+    4,294,967,295 ms ≈ 49.7 días. Después de eso, <strong>se desborda a 0</strong>. Pero nuestro
+    código es inmune a este overflow gracias a la aritmética sin signo:
+  </p>
+  <pre><code><span class="cm">// Justo antes del overflow:</span>
+<span class="fn">millis</span>() = <span class="num">4294967290</span>
+ultimoReporte = <span class="num">4294960000</span>
+<span class="fn">millis</span>() - ultimoReporte = <span class="num">7290</span>  <span class="cm">// OK, positivo</span>
+
+<span class="cm">// Justo después del overflow (millis vuelve a 0):</span>
+<span class="fn">millis</span>() = <span class="num">500</span>
+ultimoReporte = <span class="num">4294960000</span>
+<span class="fn">millis</span>() - ultimoReporte = <span class="num">500</span> - <span class="num">4294960000</span>
+  = <span class="num">500</span> + (<span class="num">4294967295</span> - <span class="num">4294960000</span> + <span class="num">1</span>)  <span class="cm">// aritmética modular sin signo</span>
+  = <span class="num">500</span> + <span class="num">7296</span> = <span class="num">7796</span>  <span class="cm">// sigue funcionando correctamente</span></code></pre>
+  <p>
+    Esta es una propiedad mágica de la resta sin signo en C/C++. Mientras el intervalo sea menor
+    a 49.7 días (y 60 segundos ciertamente lo es), el código funciona para siempre.
+  </p>
+</section>
+
+<!-- ====== 9. GLOSARIO ====== -->
+<section id="glossary">
+  <h2>9. Glosario IoT para estudiantes</h2>
+  <p>Términos esenciales que aparecen en este proyecto y en el mundo IoT en general:</p>
+
+  <div class="glossary-term">
+    <div class="term">LoRa (Long Range)</div>
+    <div class="def">Técnica de modulación de radio por chirp spread spectrum (CSS). Largo alcance (km), bajo consumo (mW), baja velocidad (kbps). Capa FÍSICA del stack.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">LoRaWAN</div>
+    <div class="def">Protocolo de red MAC sobre LoRa. Define autenticación, encriptación (AES-128), clases de dispositivos (A/B/C), y arquitectura estrella (dispositivos → gateway → network server).</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">ABP (Activation By Personalization)</div>
+    <div class="def">Método de activación donde DevAddr, NwkSKey y AppSKey se pre-programan manualmente. Sin handshake. Ideal para despliegues en campo sin cobertura inicial.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">OTAA (Over-The-Air Activation)</div>
+    <div class="def">Método de activación con join request/accept. Las claves de sesión se derivan dinámicamente. Más seguro pero requiere cobertura al encender.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">DevAddr</div>
+    <div class="def">Dirección del dispositivo en la red LoRaWAN (32 bits). Identifica al dispositivo de forma única dentro de la red.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">NwkSKey (Network Session Key)</div>
+    <div class="def">Clave AES-128 que protege la integridad del mensaje entre dispositivo y network server. Verifica que el paquete no fue alterado en tránsito.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">AppSKey (Application Session Key)</div>
+    <div class="def">Clave AES-128 que encripta el payload de extremo a extremo. Solo el dispositivo y el application server pueden descifrar los datos.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Spreading Factor (SF)</div>
+    <div class="def">Número de chips por símbolo en modulación LoRa. SF7=128 chips (rápido, menor alcance), SF12=4096 chips (lento, máximo alcance). Cada incremento de SF duplica el alcance y el tiempo de transmisión.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Gateway LoRaWAN</div>
+    <div class="def">Antena + concentrador que recibe transmisiones LoRa de múltiples dispositivos y las reenvía al network server por Internet (TCP/IP). No decodifica payloads, solo reenvía.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">ChirpStack</div>
+    <div class="def">Network server LoRaWAN de código abierto. Recibe paquetes de los gateways, verifica integridad (NwkSKey), decodifica payloads (AppSKey + codec), y expone los datos vía API REST, MQTT, o integraciones.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Uplink</div>
+    <div class="def">Mensaje que va del dispositivo hacia el network server. En CLASS A, el dispositivo inicia la comunicación.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Downlink</div>
+    <div class="def">Mensaje que va del network server hacia el dispositivo. En CLASS A, solo es posible en las ventanas RX1/RX2 que se abren justo después de un uplink.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Payload</div>
+    <div class="def">Los datos útiles (carga útil) del mensaje. En nuestro caso, 2 bytes con la lluvia acumulada en unidades de 0.1 mm. El payload NO incluye headers MAC ni metadata de red.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Big-Endian</div>
+    <div class="def">Orden de bytes donde el MSB (byte más significativo) va primero. Estándar de red. Ej: 0x012C se transmite como [0x01, 0x2C].</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Debounce</div>
+    <div class="def">Técnica para filtrar rebotes mecánicos de interruptores. Ignora transiciones que ocurren dentro de una ventana de tiempo después de la primera transición válida.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">INPUT_PULLUP</div>
+    <div class="def">Modo de pin en Arduino que activa una resistencia interna conectada a VCC. El pin lee HIGH por defecto; se va a LOW cuando un switch externo lo conecta a GND.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">millis()</div>
+    <div class="def">Función de Arduino que retorna milisegundos desde el arranque. Base de la programación no bloqueante. Se desborda cada ~49.7 días pero la aritmética sin signo lo maneja correctamente.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Tipping Bucket</div>
+    <div class="def">Mecanismo de medición de lluvia: un balancín con dos cubos calibrados. Cada basculazo representa una cantidad fija de lluvia (0.2 mm en el Davis 7345.440).</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Reed Switch</div>
+    <div class="def">Interruptor magnético: dos láminas metálicas selladas en vidrio que se tocan en presencia de un campo magnético. Sin contacto físico externo, ideal para ambientes húmedos.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">SPI (Serial Peripheral Interface)</div>
+    <div class="def">Bus de comunicación serial síncrono entre microcontrolador y periféricos. El BastWAN usa SPI para comunicarse con el chip RFM95 (LoRa).</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Duty Cycle</div>
+    <div class="def">Límite regulatorio de tiempo de transmisión. En banda 868 MHz (EU), un dispositivo solo puede transmitir el 1% del tiempo. La librería LoRaWAN lo respeta automáticamente.</div>
+  </div>
+
+  <div class="glossary-term">
+    <div class="term">Codec (ChirpStack)</div>
+    <div class="def">Función JavaScript en ChirpStack que decodifica el payload binario a valores legibles (ej: bytes → mm de lluvia). Se configura por dispositivo.</div>
+  </div>
+</section>
+
+<!-- ====== 10. RESUMEN ====== -->
+<section id="summary">
+  <h2>10. Resumen final</h2>
+
+  <h3>El ciclo de vida de un dato</h3>
+  <div class="flow">
+    <div class="flow-box">🌧️ Lluvia cae</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Balancín bascula<br>(0.2 mm)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Imán activa<br>reed switch</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Pin 9 va LOW<br>(flanco detectado)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Debounce<br>(200 ms)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">pulsos++</div>
+  </div>
+  <div style="text-align:center; color:var(--muted); margin:0.5rem 0;">... cada minuto ...</div>
+  <div class="flow">
+    <div class="flow-box">pulsos × 2<br>= valor payload</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Big-endian<br>2 bytes</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">lora.sendUplink()<br>(encolado)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">lora.update()<br>transmite RF</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Gateway<br>LoRaWAN</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">ChirpStack<br>decodifica</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">📊 Dashboard<br>CENGICANA</div>
+  </div>
+
+  <h3>Lo que aprendiste</h3>
+  <ul style="padding-left:1.5rem; margin:0.5rem 0;">
+    <li>✅ Cómo un pluviómetro de balancín convierte lluvia en pulsos eléctricos.</li>
+    <li>✅ Cómo Arduino lee esos pulsos con INPUT_PULLUP y detección de flancos.</li>
+    <li>✅ Qué es el debounce y por qué 200 ms es el valor correcto.</li>
+    <li>✅ Cómo funciona LoRaWAN: clases A/B/C, SF, ABP vs OTAA, claves de sesión.</li>
+    <li>✅ Cómo se codifica un payload big-endian de 2 bytes para ChirpStack.</li>
+    <li>✅ Por qué usamos millis() en vez de delay() (programación no bloqueante).</li>
+    <li>✅ El rol de lora.update() como máquina de estados de la comunicación.</li>
+    <li>✅ La arquitectura completa: sensor → micro → radio → gateway → servidor.</li>
+  </ul>
+
+  <div class="callout tip">
+    <strong>🎓 Para los estudiantes</strong>
+    Este proyecto integra electrónica, programación embebida, redes inalámbricas, y cloud computing
+    en un solo dispositivo funcional. Entender cada capa — desde el reed switch hasta ChirpStack —
+    es la base para diseñar cualquier sistema IoT profesional. ¡Ahora tienen el mapa completo!
+  </div>
+
+  <p style="text-align:center; color:var(--muted); margin-top:2rem;">
+    PV-Davies01 — CENGICANA — BastWAN + Davis 7345.440<br>
+    Documentación generada para fines educativos.
+  </p>
+</section>
+
+</div>
+</body>
+</html>
